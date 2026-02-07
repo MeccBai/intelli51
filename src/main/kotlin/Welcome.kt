@@ -10,8 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun WelcomeDialog(
-    onDismiss: () -> Unit,
+fun welcomeDialog(
     dialogBg: Color,
     dialogTextColor: Color,
     primaryColor: Color,
@@ -72,8 +71,7 @@ fun WelcomeDialog(
 }
 
 @Composable
-fun StartupDialog(
-    onDismiss: () -> Unit,
+fun startupDialog(
     lastFolder: String?,
     onOpenFolder: () -> Unit,
     onOpenLastFolder: () -> Unit,

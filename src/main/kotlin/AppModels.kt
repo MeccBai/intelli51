@@ -1,5 +1,8 @@
+@file:Suppress("InvalidPackageDeclaration")
+
 package com.intelli51.intelli51
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // Top-level Problem model
@@ -7,52 +10,52 @@ data class Problem(val file: String?, val line: Int?, val message: String, val s
 
 @Serializable
 data class CompileWarning(
-    val CompileLine: String? = null,
-    val CompileWarningInfo: String? = null,
-    val CompileWarningType: String? = null
+    @SerialName("CompileLine") val compileLine: String? = null,
+    @SerialName("CompileWarningInfo") val compileWarningInfo: String? = null,
+    @SerialName("CompileWarningType") val compileWarningType: String? = null
 )
 
 @Serializable
 data class CompileError(
-    val CompileLine: String? = null,
-    val CompileErrorInfo: String? = null,
-    val CompileErrorType: String? = null
+    @SerialName("CompileLine") val compileLine: String? = null,
+    @SerialName("CompileErrorInfo") val compileErrorInfo: String? = null,
+    @SerialName("CompileErrorType") val compileErrorType: String? = null
 )
 
 @Serializable
 data class CompileTip(
-    val CompileWarningFile: String? = null,
-    val CompileWarnings: List<CompileWarning>? = null,
-    val CompileErrorFile: String? = null,
-    val CompileErrors: List<CompileError>? = null,
+    @SerialName("CompileWarningFile") val compileWarningFile: String? = null,
+    @SerialName("CompileWarnings") val compileWarnings: List<CompileWarning>? = null,
+    @SerialName("CompileErrorFile") val compileErrorFile: String? = null,
+    @SerialName("CompileErrors") val compileErrors: List<CompileError>? = null,
     // Sometimes result might be success or warning/error
-    val Result: String? = null
+    @SerialName("Result") val result: String? = null
 )
 
 @Serializable
 data class CompileInfo(
-    val CompileTips: List<CompileTip>? = null,
-    val Result: Boolean? = null
+    @SerialName("CompileTips") val compileTips: List<CompileTip>? = null,
+    @SerialName("Result") val result: Boolean? = null
 )
 
 @Serializable
 data class LinkTip(
-    val `object`: String? = null,
+    @SerialName("object") val objectName: String? = null,
     val symbol: String? = null
 )
 
 @Serializable
 data class LinkInfo(
-    val LinkTips: List<LinkTip>? = null,
-    val Result: Boolean? = null
+    @SerialName("LinkTips") val linkTips: List<LinkTip>? = null,
+    @SerialName("Result") val result: Boolean? = null
 )
 
 @Serializable
 data class BuilderOutput(
-    val CompileInfo: CompileInfo? = null,
-    val LinkInfo: LinkInfo? = null,
-    val FinalResult: Boolean? = null,
+    @SerialName("CompileInfo") val compileInfo: CompileInfo? = null,
+    @SerialName("LinkInfo") val linkInfo: LinkInfo? = null,
+    @SerialName("FinalResult") val finalResult: Boolean? = null,
     // Init failed cases
-    val Result: String? = null,
-    val InitFailedType: String? = null
+    @SerialName("Result") val result: String? = null,
+    @SerialName("InitFailedType") val initFailedType: String? = null
 )

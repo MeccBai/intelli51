@@ -233,8 +233,7 @@ fun App(
     }
 
     if (showWelcomeDialog) {
-        WelcomeDialog(
-            onDismiss = { /* Force user to check */ },
+        welcomeDialog(
             dialogBg = dialogBg,
             dialogTextColor = dialogTextColor,
             primaryColor = primaryColorState.value,
@@ -247,8 +246,7 @@ fun App(
 
     if (showStartupDialog && rootPath == null && !showWelcomeDialog) {
         val lastFolder = remember { loadLastFolderFromConfig() }
-        StartupDialog(
-            onDismiss = { /* Mandatory choice */ },
+        startupDialog(
             lastFolder = lastFolder,
             onOpenFolder = {
                 val chooser = JFileChooser()

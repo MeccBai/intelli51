@@ -1,3 +1,6 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+@file:Suppress("InvalidPackageDeclaration", "TooGenericExceptionCaught", "PrintStackTrace", "ReturnCount")
+
 package com.intelli51.intelli51
 
 import kotlinx.serialization.json.Json
@@ -13,67 +16,82 @@ fun parseProblemsFromJson(raw: String): List<Problem> {
     val out = mutableListOf<Problem>()
 
     try {
-        // Handle InitFailed root object case if the structure is flat for init errors
-        if (raw.contains("\"InitFailed\"")) {
-             try {
-                 val root = jsonDecoder.decodeFromString<BuilderOutput>(raw)
-                 if (root.Result == "InitFailed") {
-                     out.add(Problem(null, null, "Init failed: ${root.InitFailedType}", "Error"))
-                     return out // Return early if init failed
-                 }
-             } catch (_: Exception) {}
-        }
+        checkForInitFailed(raw, out)
+        if (out.isNotEmpty()) return out
 
         val root = try {
             jsonDecoder.decodeFromString<BuilderOutput>(raw)
-        } catch (e: Exception) {
-            // e.printStackTrace()
+        } catch (_: Exception) {
             return emptyList()
         }
 
-        // Process Compile Info
-        root.CompileInfo?.CompileTips?.forEach { tip ->
-            // Warnings
-            if (!tip.CompileWarningFile.isNullOrBlank()) {
-                if (tip.CompileWarnings.isNullOrEmpty()) {
-                    // File level warning without details
-                    out.add(Problem(tip.CompileWarningFile, null, "Warning (check file)", "Warning"))
-                } else {
-                    tip.CompileWarnings.forEach { warn ->
-                        val line = warn.CompileLine?.toIntOrNull()
-                        val msg = warn.CompileWarningInfo ?: "Unknown warning"
-                        val type = warn.CompileWarningType?.let { "[$it] " } ?: ""
-                        out.add(Problem(tip.CompileWarningFile, line, "$type$msg", "Warning"))
-                    }
-                }
-            }
-
-            // Errors
-            if (!tip.CompileErrorFile.isNullOrBlank()) {
-                if (tip.CompileErrors.isNullOrEmpty()) {
-                    out.add(Problem(tip.CompileErrorFile, null, "Error (check file)", "Error"))
-                } else {
-                    tip.CompileErrors.forEach { err ->
-                        val line = err.CompileLine?.toIntOrNull()
-                        val msg = err.CompileErrorInfo ?: "Unknown error"
-                        val type = err.CompileErrorType?.let { "[$it] " } ?: ""
-                        out.add(Problem(tip.CompileErrorFile, line, "$type$msg", "Error"))
-                    }
-                }
-            }
-        }
-
-        // Process Link Info
-        root.LinkInfo?.LinkTips?.forEach { linkTip ->
-             if (!linkTip.`object`.isNullOrBlank() && !linkTip.symbol.isNullOrBlank()) {
-                 out.add(Problem(linkTip.`object`, null, "Missing symbol: ${linkTip.symbol}", "Error"))
-             }
-        }
+        processCompileInfo(root.compileInfo, out)
+        processLinkInfo(root.linkInfo, out)
 
     } catch (e: Exception) {
         e.printStackTrace()
     }
     return out
+}
+
+private fun checkForInitFailed(raw: String, out: MutableList<Problem>) {
+    // Handle InitFailed root object case if the structure is flat for init errors
+    if (raw.contains("\"InitFailed\"")) {
+         try {
+             val root = jsonDecoder.decodeFromString<BuilderOutput>(raw)
+             if (root.result == "InitFailed") {
+                 out.add(Problem(null, null, "Init failed: ${root.initFailedType}", "Error"))
+             }
+         } catch (_: Exception) {}
+    }
+}
+
+private fun processCompileInfo(compileInfo: CompileInfo?, out: MutableList<Problem>) {
+    val tips = compileInfo?.compileTips ?: return
+
+    tips.forEach { tip ->
+        processTipWarnings(tip, out)
+        processTipErrors(tip, out)
+    }
+}
+
+private fun processTipWarnings(tip: CompileTip, out: MutableList<Problem>) {
+    if (tip.compileWarningFile.isNullOrBlank()) return
+
+    if (tip.compileWarnings.isNullOrEmpty()) {
+        // File level warning without details
+        out.add(Problem(tip.compileWarningFile, null, "Warning (check file)", "Warning"))
+    } else {
+        tip.compileWarnings.forEach { warn ->
+            val line = warn.compileLine?.toIntOrNull()
+            val msg = warn.compileWarningInfo ?: "Unknown warning"
+            val type = warn.compileWarningType?.let { "[$it] " } ?: ""
+            out.add(Problem(tip.compileWarningFile, line, "$type$msg", "Warning"))
+        }
+    }
+}
+
+private fun processTipErrors(tip: CompileTip, out: MutableList<Problem>) {
+    if (tip.compileErrorFile.isNullOrBlank()) return
+
+    if (tip.compileErrors.isNullOrEmpty()) {
+        out.add(Problem(tip.compileErrorFile, null, "Error (check file)", "Error"))
+    } else {
+        tip.compileErrors.forEach { err ->
+            val line = err.compileLine?.toIntOrNull()
+            val msg = err.compileErrorInfo ?: "Unknown error"
+            val type = err.compileErrorType?.let { "[$it] " } ?: ""
+            out.add(Problem(tip.compileErrorFile, line, "$type$msg", "Error"))
+        }
+    }
+}
+
+private fun processLinkInfo(linkInfo: LinkInfo?, out: MutableList<Problem>) {
+    linkInfo?.linkTips?.forEach { linkTip ->
+         if (!linkTip.objectName.isNullOrBlank() && !linkTip.symbol.isNullOrBlank()) {
+             out.add(Problem(linkTip.objectName, null, "Missing symbol: ${linkTip.symbol}", "Error"))
+         }
+    }
 }
 
 fun buildProblemsMap(problems: List<Problem>): Map<String, Set<Int>> {
@@ -95,7 +113,7 @@ suspend fun findFileInProject(root: Path?, fileName: String?): Path? {
                 stream.filter { p -> p.fileName?.toString()?.equals(fileName, true) == true }
                     .findFirst().orElse(null)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
