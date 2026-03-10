@@ -112,7 +112,10 @@ fun App(
         MaterialTheme.colorScheme.primaryContainer
     }
 
-    val dialogTextColor = if (isDark) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimaryContainer
+    val dialogTextColor = if (isDark)
+        MaterialTheme.colorScheme.onSurface
+    else
+        MaterialTheme.colorScheme.onPrimaryContainer
 
     // Helper to perform the actual folder opening and cache loading
     val openFolderAction = { path: Path ->
@@ -151,7 +154,7 @@ fun App(
                             showStartupDialog = false
                         }
                     }
-                } catch (e: Exception) {
+                } catch (e: kotlin.Exception) {
                     e.printStackTrace()
                 }
             }
@@ -201,7 +204,7 @@ fun App(
                     withContext(Dispatchers.Main) {
                         projectDownloadPortState.value = loadDownloadPortFromProject(path) ?: ""
                     }
-                } catch (e: Exception) {
+                } catch (e: kotlin.Exception) {
                     e.printStackTrace()
                     openFolderAction(path)
                 }
@@ -222,12 +225,12 @@ fun App(
     if (showFolderNotFoundDialog) {
         // Simple error alert
         AlertDialog(
-            onDismissRequest = { showFolderNotFoundDialog = false },
+            onDismissRequest = { false },
             containerColor = dialogBg,
             title = { Text("无法打开文件夹", color = dialogTextColor) },
             text = { Text("上次打开的文件夹不存在或无法访问。", color = dialogTextColor) },
             confirmButton = {
-                Button(onClick = { showFolderNotFoundDialog = false }) { Text("确定") }
+                Button(onClick = { false }) { Text("确定") }
             }
         )
     }
@@ -271,7 +274,7 @@ fun App(
                             // Folder missed
                             showFolderNotFoundDialog = true
                         }
-                    } catch (e: Exception) {
+                    } catch (e: kotlin.Exception) {
                          e.printStackTrace()
                          showFolderNotFoundDialog = true
                     }
@@ -348,7 +351,7 @@ fun App(
                                         else -> "错误"
                                     }
                                 }
-                            } catch (pe: Exception) {
+                            } catch (pe: kotlin.Exception) {
                                 pe.printStackTrace()
                                 if (result.failureMessage != null) {
                                     runStatus = "下载失败"
@@ -359,7 +362,7 @@ fun App(
                             }
                             // Only show run output if not terminated manually (though here we just show it)
                             showRunOutputDialog = true
-                        } catch (e: Exception) {
+                        } catch (e: kotlin.Exception) {
                             e.printStackTrace()
                             runOutput = "Error: ${e.message}"
                             runStatus = "错误"
@@ -378,7 +381,9 @@ fun App(
         },
     ) { inner ->
         // Use the scaffold inner padding (accounts for topBar height) and add a small gap under the top bar
-        Row(modifier = Modifier.fillMaxSize().padding(inner).padding(top = UiSizes.WINDOW_MARGIN), verticalAlignment = Alignment.Top) {
+        Row(modifier = Modifier.fillMaxSize()
+            .padding(inner)
+            .padding(top = UiSizes.WINDOW_MARGIN), verticalAlignment = Alignment.Top) {
 
             // Sidebar
             ProjectSideBar(
@@ -422,11 +427,13 @@ fun App(
                 tonalElevation = 8.dp,
                 shape = RoundedCornerShape(10.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.weight(1f).padding(end = UiSizes.EDITOR_RIGHT_PADDING, bottom = UiSizes.BOTTOM_MARGIN)
+                modifier = Modifier.weight(1f)
+                    .padding(end = UiSizes.EDITOR_RIGHT_PADDING, bottom = UiSizes.BOTTOM_MARGIN)
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     // faint tint layer derived from primary color to create a mixed-theme look
-                    Box(modifier = Modifier.matchParentSize().background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)))
+                    Box(modifier = Modifier.matchParentSize()
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)))
 
                     EditorHost(
                         openFiles = fileManager.openFiles,
@@ -475,7 +482,8 @@ fun App(
                             var i = 1
                             while (Files.exists(candidate)) {
                                 candidate =
-                                    dir.resolve("${newFileName.ifBlank { "new" }}${i}.${if (creatingType == "C") "c" else "h"}")
+                                    dir.resolve(newFileName.ifBlank { "new" } +
+                                            "${i}.${if (creatingType == "C") "c" else "h"}")
                                 i++
                             }
                             val content = if (creatingType == "C") "// new C file\n" else "// new H file\n"
